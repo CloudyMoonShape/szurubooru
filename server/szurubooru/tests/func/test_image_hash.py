@@ -1,6 +1,8 @@
 import pytest
 from numpy import array_equal
+from PIL import Image
 
+from szurubooru import errors
 from szurubooru.func import image_hash
 
 
@@ -77,3 +79,12 @@ def test_signature_avif(read_asset, config_injector):
     words2 = image_hash.generate_words(sig2)
     words_match = sum(word1 == word2 for word1, word2 in zip(words1, words2))
     assert words_match == 12
+
+
+@pytest.mark.parametrize("asset", ["png.png", "heif.heif"])
+def test_signature_of_decompression_bomb(
+    read_asset, config_injector, monkeypatch, asset
+):
+    monkeypatch.setattr(Image, "MAX_IMAGE_PIXELS", 1)
+    with pytest.raises(errors.ProcessingError):
+        image_hash.generate_signature(read_asset(asset))

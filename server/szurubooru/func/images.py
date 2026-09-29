@@ -23,9 +23,12 @@ if not features.check("avif"):
 
 
 def convert_heif_to_png(content: bytes) -> bytes:
-    img = PILImage.open(BytesIO(content))
-    img_byte_arr = BytesIO()
-    img.save(img_byte_arr, format="PNG")
+    try:
+        img = PILImage.open(BytesIO(content))
+        img_byte_arr = BytesIO()
+        img.save(img_byte_arr, format="PNG")
+    except (IOError, ValueError, PILImage.DecompressionBombError):
+        raise errors.ProcessingError("Unable to convert HEIF image.")
     return img_byte_arr.getvalue()
 
 

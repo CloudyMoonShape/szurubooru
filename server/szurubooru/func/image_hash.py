@@ -46,7 +46,7 @@ def _preprocess_image(content: bytes) -> NpMatrix:
     try:
         img = Image.open(BytesIO(content))
         return np.asarray(img.convert("L"), dtype=np.uint8)
-    except (IOError, ValueError):
+    except (IOError, ValueError, Image.DecompressionBombError):
         raise errors.ProcessingError(
             "Unable to generate a signature hash " "for this image."
         )
