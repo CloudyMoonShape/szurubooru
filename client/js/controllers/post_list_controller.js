@@ -84,9 +84,21 @@ class PostListController {
 
     _evtTag(e) {
         Promise.all(
-            this._bulkEditTags.map((tag) => e.detail.post.tags.addByName(tag))
+            this._bulkEditTags.map((tag) =>
+                // addByName adds the tag itself at once and then looks up its
+                // implications; a tag that does not exist yet fails that
+                // lookup, which must not stop the save that creates it.
+                e.detail.post.tags.addByName(tag).catch((error) => {
+                    if (
+                        !error.response ||
+                        error.response.name !== "TagNotFoundError"
+                    ) {
+                        throw error;
+                    }
+                })
+            )
         )
-            .then(e.detail.post.save())
+            .then(() => e.detail.post.save())
             .catch((error) => window.alert(error.message));
     }
 
