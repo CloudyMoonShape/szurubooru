@@ -85,8 +85,11 @@ function extractRootDomain(url) {
     return domain;
 }
 
+// Escapes a literal tag name for use as a search term. Tag names may contain
+// characters that the search syntax treats as operators, and a leading "-"
+// negates the term.
 function escapeTagName(text) {
-    return text.replace(/:/g, "\\:").replace(/\./g, "\\.");
+    return text.replace(/[\\*,:.]/g, "\\$&").replace(/^-/, "\\-");
 }
 
 module.exports = {
