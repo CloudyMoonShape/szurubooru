@@ -19,10 +19,14 @@ class PostMainController extends BasePostController {
         let parameters = ctx.parameters;
         Promise.all([
             Post.get(ctx.parameters.id),
-            PostList.getAround(
-                ctx.parameters.id,
-                parameters ? parameters.query : null
-            ),
+            // The previous and next posts come from a post search, which
+            // needs posts:list. Without it, the post itself must still open.
+            api.hasPrivilege("posts:list")
+                ? PostList.getAround(
+                      ctx.parameters.id,
+                      parameters ? parameters.query : null
+                  )
+                : Promise.resolve({ prev: null, next: null }),
         ]).then(
             (responses) => {
                 const [post, aroundResponse] = responses;
