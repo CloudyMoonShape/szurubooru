@@ -123,11 +123,24 @@ class PostListController {
                 `Are you sure you want to delete ${this._postsMarkedForDeletion.length} posts?`
             )
         ) {
-            Promise.all(
-                this._postsMarkedForDeletion.map((post) => post.delete())
-            )
-                .catch((error) => window.alert(error.message))
+            // One at a time: deleting related posts in parallel makes the
+            // server remove the same relation rows in two transactions,
+            // which deadlocks.
+            const errors = [];
+            this._postsMarkedForDeletion
+                .reduce(
+                    (promise, post) =>
+                        promise.then(() =>
+                            post
+                                .delete()
+                                .catch((error) => errors.push(error.message))
+                        ),
+                    Promise.resolve()
+                )
                 .then(() => {
+                    if (errors.length) {
+                        window.alert(errors.join("\n"));
+                    }
                     this._postsMarkedForDeletion = [];
                     this._headerView._navigate();
                 });
