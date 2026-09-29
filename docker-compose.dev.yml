@@ -1,7 +1,7 @@
 ## Docker Compose configuration for dev iteration
 ##
 ## Data is transient by using named vols.
-## Run: docker-compose -f ./docker-compose.dev.yml up
+## Run: docker compose -f ./docker-compose.dev.yml up
 services:
 
   server:

@@ -181,7 +181,7 @@ with `--no-cache`.*
       listen 80;
       listen [::]:80;
       server_tokens off;
-      server_name www.example.com
+      server_name www.example.com;
       return 301 http://example.com$request_uri;
     }
 
@@ -201,7 +201,6 @@ with `--no-cache`.*
         proxy_set_header X-Scheme $scheme;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Script-Name /szuru;
         error_page 500 501 502 504 505 506 507 508 509 510 511 @err;
         error_page 503 @throttle;
       }
