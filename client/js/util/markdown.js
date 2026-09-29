@@ -69,9 +69,11 @@ class EntityPermalinkWrapper extends BaseMarkdownWrapper {
             /(^|^\(|(?:[^\]])\(|[\s<>\[\]\)])([+#@][a-zA-Z0-9_-]+)/g,
             "$1[$2]($2)"
         );
-        text = text.replace(/\]\(@(\d+)\)/g, "](/post/$1)");
-        text = text.replace(/\]\(\+([a-zA-Z0-9_-]+)\)/g, "](/user/$1)");
-        text = text.replace(/\]\(#([a-zA-Z0-9_-]+)\)/g, "](/posts/query=$1)");
+        // Relative links, so that <base href> applies when the site runs
+        // under a subpath.
+        text = text.replace(/\]\(@(\d+)\)/g, "](post/$1)");
+        text = text.replace(/\]\(\+([a-zA-Z0-9_-]+)\)/g, "](user/$1)");
+        text = text.replace(/\]\(#([a-zA-Z0-9_-]+)\)/g, "](posts/query=$1)");
         return text;
     }
 }
@@ -80,7 +82,7 @@ class SearchPermalinkWrapper extends BaseMarkdownWrapper {
     postprocess(text) {
         return text.replace(
             /\[search\]((?:[^\[]|\[(?!\/?search\]))+)\[\/search\]/gi,
-            '<a href="/posts/query=$1"><code>$1</code></a>'
+            '<a href="posts/query=$1"><code>$1</code></a>'
         );
     }
 }
