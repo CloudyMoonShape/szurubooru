@@ -812,6 +812,47 @@ def test_own_disliked(
 
 
 @pytest.mark.parametrize(
+    "input,expected_post_ids",
+    [
+        ("special:liked", [1]),
+        ("-special:liked", [2, 3, 4]),
+        ("special:disliked", [2]),
+        ("-special:disliked", [1, 3, 4]),
+    ],
+)
+def test_own_score_ignores_other_votes_and_keeps_unvoted_posts(
+    auth_executor,
+    post_factory,
+    score_factory,
+    user_factory,
+    verify_unpaged,
+    input,
+    expected_post_ids,
+):
+    auth_user = auth_executor()
+    other_user = user_factory(name="dummy")
+    post1 = post_factory(id=1)
+    post2 = post_factory(id=2)
+    post3 = post_factory(id=3)
+    post4 = post_factory(id=4)
+    db.session.add_all(
+        [
+            score_factory(post=post1, user=auth_user, score=1),
+            score_factory(post=post1, user=other_user, score=-1),
+            score_factory(post=post2, user=auth_user, score=-1),
+            score_factory(post=post2, user=other_user, score=1),
+            score_factory(post=post3, user=other_user, score=1),
+            post1,
+            post2,
+            post3,
+            post4,
+        ]
+    )
+    db.session.flush()
+    verify_unpaged(input, expected_post_ids)
+
+
+@pytest.mark.parametrize(
     "input",
     [
         "liked:x",

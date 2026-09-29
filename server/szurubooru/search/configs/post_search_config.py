@@ -52,6 +52,18 @@ def _source_transformer(value: str) -> str:
 
 
 def _create_score_filter(score: int) -> Filter:
+    # A subquery instead of a join: a join drops posts that nobody voted on,
+    # and a negated join condition still matches the votes of other users.
+    score_filter = search_util.create_subquery_filter(
+        model.Post.post_id,
+        model.PostScore.post_id,
+        model.User.name,
+        search_util.create_str_filter,
+        lambda subquery: subquery.join(model.User).filter(
+            model.PostScore.score == score
+        ),
+    )
+
     def wrapper(
         query: SaQuery,
         criterion: Optional[criteria.BaseCriterion],
@@ -63,20 +75,7 @@ def _create_score_filter(score: int) -> Filter:
                 "Votes cannot be seen publicly. Did you mean %r?"
                 % "special:liked"
             )
-        user_alias = sa.orm.aliased(model.User)
-        score_alias = sa.orm.aliased(model.PostScore)
-        expr = score_alias.score == score
-        expr = expr & search_util.apply_str_criterion_to_column(
-            user_alias.name, criterion
-        )
-        if negated:
-            expr = ~expr
-        ret = (
-            query.join(score_alias, score_alias.post_id == model.Post.post_id)
-            .join(user_alias, user_alias.user_id == score_alias.user_id)
-            .filter(expr)
-        )
-        return ret
+        return score_filter(query, criterion, negated)
 
     return wrapper
 
